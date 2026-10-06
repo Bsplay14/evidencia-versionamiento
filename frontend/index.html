@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PanLogic POS</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="notificacion">✅ Operación Exitosa</div>
+
+    <!-- VISTA: LOGIN -->
+    <div id="vista-login" class="vista-sistema">
+      <div class="login-tarjeta">
+        <img src="logoemprea.png" alt="Logo DevSoft" class="login-logo" />
+        <h2>Ingreso PanLogic</h2>
+        <div class="grupo-input">
+          <label>Usuario:</label>
+          <input type="text" id="login-usuario" placeholder="Ej: admin" />
+        </div>
+        <div class="grupo-input">
+          <label>Contraseña:</label>
+          <input type="password" id="login-contrasena" placeholder="••••••••" />
+        </div>
+        <button onclick="autenticarUsuario()" class="btn-ingresar">Ingresar al Sistema</button>
+      </div>
+    </div>
+
+    <!-- VISTA: MENÚ DE MÓDULOS -->
+    <div id="vista-modulos" class="vista-sistema" style="display: none">
+      <header>
+        <div class="header-contenido">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="logoemprea.png" alt="Logo" class="logo-img" />
+            <h1>PanLogic - Panel de Módulos</h1>
+          </div>
+          <button type="button" onclick="cerrarSesion()" class="btn-salir-header">Cerrar Sesión X </button>
+        </div>
+      </header>
+
+      <div class="contenedor-modulos-grid">
+        <button type="button" class="tarjeta-modulo" onclick="navegarA('vista-ventas')">
+          <span class="icono-mod">💵</span>
+          <div class="modulo-info">
+            <h3>Módulo de Ventas</h3>
+            <p>Caja registradora y cuentas abiertas.</p>
+          </div>
+        </button>
+
+        <button type="button" class="tarjeta-modulo" onclick="navegarA('vista-gestion-productos')">
+          <span class="icono-mod">🏷️</span>
+          <div class="modulo-info">
+            <h3>Gestión de Productos</h3>
+            <p>Modificar catálogo y precios.</p>
+          </div>
+        </button>
+
+        <button type="button" class="tarjeta-modulo" onclick="navegarA('vista-proveedores')">
+          <span class="icono-mod">🚚</span>
+          <div class="modulo-info">
+            <h3>Módulo de Proveedores</h3>
+            <p>Administración de contactos e insumos.</p>
+          </div>
+        </button>
+
+        <button type="button" class="tarjeta-modulo" onclick="navegarA('vista-produccion')">
+          <span class="icono-mod">🧑‍🍳</span>
+          <div class="modulo-info">
+            <h3>Módulo de Producción</h3>
+            <p>Órdenes de horneado y control.</p>
+          </div>
+        </button>
+
+        <button type="button" class="tarjeta-modulo" onclick="navegarA('vista-inventario')">
+          <span class="icono-mod">📦</span>
+          <div class="modulo-info">
+            <h3>Módulo de Inventario</h3>
+            <p>Stock físico de materias primas.</p>
+          </div>
+        </button>
+
+        <button type="button" class="tarjeta-modulo" onclick="navegarA('vista-personal')">
+          <span class="icono-mod">👥</span>
+          <div class="modulo-info">
+            <h3>Registro de Personal</h3>
+            <p>Gestión de empleados y roles.</p>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- VISTA: MÓDULO DE VENTAS (POS 3 COLUMNAS) -->
+    <div id="vista-ventas" class="vista-sistema" style="display: none">
+      <header>
+        <div class="header-contenido">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="logoemprea.png" alt="Logo" class="logo-img" />
+            <h1>PanLogic | Punto de Venta (POS)</h1>
+          </div>
+          <button type="button" onclick="navegarA('vista-modulos')" class="btn-volver-menu">← Volver al Menú</button>
+        </div>
+      </header>
+
+      <div class="pos-layout-tres-columnas">
+        <!-- COLUMNA 1: CATÁLOGO DE PRODUCTOS -->
+        <div class="tarjeta-formulario pos-col-productos">
+          <div class="grupo-input" style="margin-bottom: 12px; flex-direction: row; align-items: center; gap: 10px;">
+            <label style="margin: 0; font-weight: bold;">Cant:</label>
+            <input type="number" id="cantidad-input" value="1" min="1" style="width: 80px;" />
+          </div>
+          <div id="grid-botones" class="grid-productos-pos">
+            <p>Cargando productos...</p>
+          </div>
+        </div>
+
+        <!-- COLUMNA 2: TICKET Y PAGOS -->
+        <div class="tarjeta-formulario pos-col-ticket">
+          <h2>🛒 Cuenta en Caja</h2>
+          <div class="contenedor-ticket-lista">
+            <ul id="lista-ventas"></ul>
+          </div>
+
+          <div class="totales-contenedor">
+            <span class="total-label">TOTAL:</span>
+            <span id="total-pagar" class="total-monto">$0</span>
+          </div>
+
+          <div class="seccion-pago-caja">
+            <div class="grupo-input">
+              <label>Pagó con:</label>
+              <input type="number" id="pago-con" placeholder="Eje: 20000" oninput="calcularCambio()" />
+            </div>
+            <p class="cambio-texto">Cambio: <b id="cambio-resultado">$0</b></p>
+          </div>
+
+          <div class="grid-botones-cobro">
+            <button type="button" onclick="cobrar('Efectivo')" class="btn-pos btn-efectivo">💵 Efectivo</button>
+            <button type="button" onclick="cobrar('Nequi/Davi')" class="btn-pos btn-nequi">📱 Nequi/Davi</button>
+            <button type="button" onclick="abrirModalAlias()" class="btn-pos btn-guardar-cuenta">📌 Guardar/Actualizar Cuenta</button>
+            <button type="button" onclick="limpiarCuenta()" class="btn-pos btn-vaciar-caja">🗑️ Vaciar Caja</button>
+          </div>
+        </div>
+
+        <!-- COLUMNA 3: CUENTAS ABIERTAS Y REPORTES -->
+        <div class="tarjeta-formulario pos-col-cuentas">
+          <h2>📌 Cuentas Abiertas</h2>
+          <div id="lista-cuentas-abiertas" class="contenedor-cuentas-abiertas">
+            <p style="color: #888; font-size: 13px;">No hay cuentas pendientes.</p>
+          </div>
+
+          <div class="seccion-reportes-pos">
+            <button type="button" onclick="descargarReporteExcel()" class="btn-pos btn-reporte-excel">📊 Reporte y Excel</button>
+            <button type="button" onclick="cerrarCaja()" class="btn-pos btn-cierre-caja">🌙 Cierre de Caja</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL PARA GUARDAR ALIAS DE CUENTA -->
+    <div id="modal-alias" class="modal-overlay" style="display: none;">
+      <div class="modal-caja">
+        <h3>Guardar Cuenta Abierta</h3>
+        <div class="grupo-input" style="margin: 15px 0;">
+          <label>Nombre o Identificador del Cliente:</label>
+          <input type="text" id="alias-cliente" placeholder="Ej: Mesa 3 / Juan" />
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" onclick="confirmarGuardarCuenta()" class="btn-accion-naranja">Guardar</button>
+          <button type="button" onclick="cerrarModalAlias()" class="btn-tabla-borrar" style="width: 100%;">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: GESTIÓN DE PRODUCTOS -->
+    <div id="vista-gestion-productos" class="vista-sistema" style="display: none">
+      <header>
+        <div class="header-contenido">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="logoemprea.png" alt="Logo" class="logo-img" />
+            <h1>PanLogic | Gestión de Productos</h1>
+          </div>
+          <button type="button" onclick="navegarA('vista-modulos')" class="btn-volver-menu">← Volver al Menú</button>
+        </div>
+      </header>
+
+      <div class="contenedor-dos-columnas">
+        <div class="tarjeta-formulario">
+          <h2>Registrar Nuevo Producto</h2>
+          <div class="grupo-input">
+            <label>Nombre del Producto</label>
+            <input type="text" id="prod-nombre" placeholder="Ej: Pan Flor..." />
+          </div>
+          <div class="grupo-input">
+            <label>Categoría</label>
+            <select id="prod-categoria">
+              <option value="Panadería">Panadería</option>
+              <option value="Pastelería">Pastelería</option>
+              <option value="Bebidas">Bebidas</option>
+            </select>
+          </div>
+          <div class="grupo-input">
+            <label>Precio de Costo</label>
+            <input type="number" id="prod-costo" placeholder="0.00" />
+          </div>
+          <div class="grupo-input">
+            <label>Precio de Venta</label>
+            <input type="number" id="prod-venta" placeholder="0.00" />
+          </div>
+          <button type="button" onclick="mostrarNotificacion('Producto guardado')" class="btn-accion-naranja">GUARDAR PRODUCTO</button>
+        </div>
+
+        <div class="tarjeta-formulario">
+          <h2>Lista de Productos Existentes</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Costo</th>
+                <th>P. Venta</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-productos-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: PROVEEDORES -->
+    <div id="vista-proveedores" class="vista-sistema" style="display: none">
+      <header>
+        <div class="header-contenido">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="logoemprea.png" alt="Logo" class="logo-img" />
+            <h1>PanLogic | Gestión de Proveedores</h1>
+          </div>
+          <button type="button" onclick="navegarA('vista-modulos')" class="btn-volver-menu">← Volver al Menú</button>
+        </div>
+      </header>
+
+      <div class="contenedor-dos-columnas">
+        <div class="tarjeta-formulario">
+          <h2>Registrar Proveedor</h2>
+          <div class="grupo-input">
+            <label>Nombre Empresa / Proveedor</label>
+            <input type="text" id="prov-nombre" placeholder="Ej: Harinas del Valle S.A." />
+          </div>
+          <div class="grupo-input">
+            <label>Persona de Contacto</label>
+            <input type="text" id="prov-contacto" placeholder="Ej: Juan Gómez" />
+          </div>
+          <div class="grupo-input">
+            <label>Teléfono / WhatsApp</label>
+            <input type="text" id="prov-telefono" placeholder="Ej: 3001234567" />
+          </div>
+          <div class="grupo-input">
+            <label>Insumos que Suministra</label>
+            <input type="text" id="prov-insumos" placeholder="Ej: Harina de trigo, Levadura" />
+          </div>
+          <button type="button" onclick="guardarProveedor()" class="btn-accion-naranja">GUARDAR PROVEEDOR</button>
+        </div>
+
+        <div class="tarjeta-formulario">
+          <h2>Directorio de Proveedores Activos</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Empresa</th>
+                <th>Contacto</th>
+                <th>Teléfono</th>
+                <th>Insumos</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-proveedores-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: PRODUCCIÓN -->
+    <div id="vista-produccion" class="vista-sistema" style="display: none">
+      <header>
+        <div class="header-contenido">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="logoemprea.png" alt="Logo" class="logo-img" />
+            <h1>PanLogic | Módulo de Producción</h1>
+          </div>
+          <button type="button" onclick="navegarA('vista-modulos')" class="btn-volver-menu">← Volver al Menú</button>
+        </div>
+      </header>
+
+      <div class="contenedor-dos-columnas">
+        <div class="tarjeta-formulario">
+          <h2>Nueva Orden de Horneado</h2>
+          <div class="grupo-input">
+            <label>Producto</label>
+            <input type="text" id="prod-horneado-nombre" placeholder="Ej: Pan Aliñado" />
+          </div>
+          <div class="grupo-input">
+            <label>Cantidad (Lote)</label>
+            <input type="number" id="prod-lote-cant" placeholder="Ej: 100" />
+          </div>
+          <div class="grupo-input">
+            <label>Panadero Asignado</label>
+            <input type="text" id="prod-panadero" placeholder="Ej: Marta López" />
+          </div>
+          <button type="button" onclick="mostrarNotificacion('Orden programada')" class="btn-accion-naranja">PROGRAMAR ORDEN</button>
+        </div>
+
+        <div class="tarjeta-formulario">
+          <h2>Monitoreo de Horneado en Tiempo Real</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Lote #</th>
+                <th>Producto</th>
+                <th>Cant.</th>
+                <th>Fecha</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-produccion-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: INVENTARIO -->
+    <div id="vista-inventario" class="vista-sistema" style="display: none">
+      <header>
+        <div class="header-contenido">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="logoemprea.png" alt="Logo" class="logo-img" />
+            <h1>PanLogic | Control de Inventario</h1>
+          </div>
+          <button type="button" onclick="navegarA('vista-modulos')" class="btn-volver-menu">← Volver al Menú</button>
+        </div>
+      </header>
+
+      <div style="padding: 25px; max-width: 1400px; margin: 0 auto;">
+        <div class="grid-kpis">
+          <div class="tarjeta-formulario">
+            <span style="color: #666; font-size: 13px;">Insumos con Stock Suficiente</span>
+            <h2 style="color: #2e7d32; font-size: 24px; margin-top: 5px;">24 Materias Primas</h2>
+          </div>
+          <div class="tarjeta-formulario">
+            <span style="color: #666; font-size: 13px;">Insumos en Stock Crítico</span>
+            <h2 style="color: #c62828; font-size: 24px; margin-top: 5px;">3 Insumos por Agotarse</h2>
+          </div>
+          <div class="tarjeta-formulario">
+            <span style="color: #666; font-size: 13px;">Valor Total Valorizado</span>
+            <h2 style="color: #333; font-size: 24px; margin-top: 5px;">$ 4.850.000</h2>
+          </div>
+        </div>
+
+        <div class="tarjeta-formulario">
+          <h2>Listado de Insumos y Materia Prima</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Insumo / Materia Prima</th>
+                <th>Categoría</th>
+                <th>Stock Actual</th>
+                <th>Stock Mínimo</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-inventario-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: REGISTRO DE PERSONAL -->
+    <div id="vista-personal" class="vista-sistema" style="display: none">
+      <header>
+        <div class="header-contenido">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="logoemprea.png" alt="Logo" class="logo-img" />
+            <h1>PanLogic | Registro de Personal</h1>
+          </div>
+          <button type="button" onclick="navegarA('vista-modulos')" class="btn-volver-menu">← Volver al Menú</button>
+        </div>
+      </header>
+
+      <div class="contenedor-dos-columnas">
+        <div class="tarjeta-formulario">
+          <h2>Registrar Empleado</h2>
+          <div class="grupo-input">
+            <label>Nombre Completo</label>
+            <input type="text" id="emp-nombre" placeholder="Ej: Carlos Ramírez" />
+          </div>
+          <div class="grupo-input">
+            <label>Cargo / Rol</label>
+            <select id="emp-rol">
+              <option value="Panadero">Panadero</option>
+              <option value="Cajero">Cajero</option>
+              <option value="Administrador">Administrador</option>
+            </select>
+          </div>
+          <div class="grupo-input">
+            <label>Teléfono</label>
+            <input type="text" id="emp-telefono" placeholder="Ej: 3101234567" />
+          </div>
+          <button type="button" onclick="mostrarNotificacion('Empleado registrado')" class="btn-accion-naranja">GUARDAR EMPLEADO</button>
+        </div>
+
+        <div class="tarjeta-formulario">
+          <h2>Personal Registrado</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Rol / Cargo</th>
+                <th>Teléfono</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-personal-body">
+              <tr>
+                <td>Carlos Ramírez</td>
+                <td>Panadero</td>
+                <td>3101234567</td>
+                <td style="text-align: center;">
+                  <button class="btn-tabla-editar">Editar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE REPORTE DE CIERRE DE CAJA -->
+    <div id="modal-cierre-caja" class="modal-overlay" style="display: none;">
+      <div class="modal-caja modal-cierre-ancho">
+        <button type="button" class="btn-cerrar-modal" onclick="cerrarModalReporte()">×</button>
+        <h2 style="color: #523b34; margin-bottom: 20px;">Reporte de Ventas</h2>
+
+        <table class="tabla-reporte-cierre">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th style="width: 100px; text-align: center;">Cant</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-cierre-body"></tbody>
+        </table>
+
+        <div class="resumen-cierre-pago">
+          <p>Efectivo: <span id="resumen-efectivo">$0</span></p>
+          <p>Transferencia: <span id="resumen-transferencia">$0</span></p>
+          <h3 style="margin-top: 10px; font-size: 18px; color: #000;">TOTAL: <span id="resumen-total">$0</span></h3>
+        </div>
+
+        <button type="button" onclick="descargarExcelCierre()" class="btn-pos btn-reporte-excel" style="width: auto; margin-top: 15px;">
+          📊 Descargar Excel
+        </button>
+      </div>
+    </div>
+
+    <script src="scrip.js"></script>
+  </body>
+</html>
